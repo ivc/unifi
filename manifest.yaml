@@ -1,0 +1,84 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: unifi-config
+data:
+  init-db.sh: |
+    file_env 'MONGO_UNIFI_PASSWORD'
+    mongo <<EOF
+    use unifi
+    db.createUser({
+      user: "unifi",
+      pwd: $(_js_escape "$MONGO_UNIFI_PASSWORD"),
+      roles: [
+        {role: "dbOwner", db: "unifi"},
+        {role: "dbOwner", db: "unifi_stat"}
+      ]
+    });
+    EOF
+  system-properties.template: |
+    db.mongo.local=false
+    db.mongo.uri=mongodb://unifi:${MONGO_UNIFI_PASSWORD}@127.0.0.1:27017/unifi
+    statdb.mongo.uri=mongodb://unifi:${MONGO_UNIFI_PASSWORD}@127.0.0.1:27017/unifi_stat
+    unifi.db.name=unifi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: unifi
+spec:
+  containers:
+  - name: app
+    image: localhost/unifi:8.1.127
+    ports:
+    - containerPort: 8443
+      hostPort: 8443
+    - containerPort: 8080
+      hostPort: 8080
+    - containerPort: 3478
+      hostPort: 3478
+      protocol: udp
+    - containerPort: 10001
+      hostPort: 10001
+      protocol: udp
+    command: [ "docker-entrypoint.sh" ]
+    args: [ "ace.jar" ]
+    env:
+    - name: SYSTEM_PROPERTIES_TEMPLATE_FILE
+      value: /run/configs/unifi/system-properties.template
+    - name: MONGO_UNIFI_PASSWORD_FILE
+      value: /run/secrets/unifi/db_password
+    volumeMounts:
+    - name: data
+      mountPath: /var/lib/unifi/
+    - name: logs
+      mountPath: /var/log/unifi/
+    - name: configs
+      mountPath: /run/configs/unifi
+    - name: secrets
+      mountPath: /run/secrets/unifi
+  - name: db
+    image: docker.io/library/mongo:4.4.18-focal
+    command: [ "docker-entrypoint.sh" ]
+    args: [ "mongod" ]
+    env:
+    - name: MONGO_UNIFI_PASSWORD_FILE
+      value: /run/secrets/unifi/db_password
+    volumeMounts:
+    - name: configs
+      mountPath: /docker-entrypoint-initdb.d
+    - name: secrets
+      mountPath: /run/secrets/unifi
+  volumes:
+  - name: secrets
+    secret:
+      secretName: unifi-secret
+  - name: configs
+    configMap:
+      name: unifi-config
+  - name: data
+    persistentVolumeClaim:
+      claimName: unifi-data
+  - name: logs
+    persistentVolumeClaim:
+      claimName: unifi-logs

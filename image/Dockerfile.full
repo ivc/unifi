@@ -1,0 +1,17 @@
+FROM debian:12
+RUN set -ex; export DEBIAN_FRONTEND=noninteractive; \
+  apt-get update; \
+  apt-get install -y --no-install-recommends \
+    curl ca-certificates gnupg procps binutils openjdk-17-jre-headless logrotate \
+    vim less python3 inetutils-ping; \
+  curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor; \
+  echo > /etc/apt/sources.list.d/mongodb-org-7.0.list \
+    "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ]" \
+    "http://repo.mongodb.org/apt/debian bookworm/mongodb-org/7.0 main"; \
+  apt-get update; apt-get install -y --no-install-recommends mongodb-org; \
+  curl --output-dir /tmp -sSLO https://dl.ui.com/unifi/8.1.127-810cd1e59a/unifi_sysvinit_all.deb; \
+  dpkg -i /tmp/unifi_sysvinit_all.deb; \
+  rm -rf /var/lib/apt/lists/* /tmp/*.deb
+USER unifi
+WORKDIR /usr/lib/unifi
+COPY docker-entrypoint.sh /usr/local/bin/
