@@ -5,7 +5,7 @@ RUN set -ex; export DEBIAN_FRONTEND=noninteractive; \
     curl ca-certificates \
     procps binutils gettext-base inetutils-ping \
     openjdk-17-jre-headless; \
-  curl --output-dir /tmp -sSLO https://dl.ui.com/unifi/8.1.127-810cd1e59a/unifi_sysvinit_all.deb; \
+  curl --output-dir /tmp -sSLO https://dl.ui.com/unifi/8.6.9/unifi_sysvinit_all.deb; \
   dpkg --ignore-depends mongodb-server,logrotate --install /tmp/unifi_sysvinit_all.deb; \
   rm -rf /var/lib/apt/lists/* /tmp/*.deb
 USER unifi

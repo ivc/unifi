@@ -1,11 +1,11 @@
 # Unofficial Docker images and K8s/Podman manifests for 
-[UniFi Network Application](https://community.ui.com/releases/UniFi-Network-Application-8-1-127/571d2218-216c-4769-a292-796cff379561)
+[UniFi Network Application](https://www.ui.com/download)
 
 ## Usage
 ### Podman
 ```
 # build image
-podman build -t localhost/unifi:8.1.127 image
+podman build -t localhost/unifi:8.6.9 image
 
 # prepare secret
 ./gen-secret.sh | podman kube play -

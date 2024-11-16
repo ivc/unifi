@@ -30,7 +30,7 @@ spec:
   hostNetwork: true
   containers:
   - name: app
-    image: localhost/unifi:8.1.127
+    image: localhost/unifi:8.6.9
     command: [ "docker-entrypoint.sh" ]
     args: [ "ace.jar" ]
     env:
@@ -39,9 +39,9 @@ spec:
     - name: MONGO_UNIFI_PASSWORD_FILE
       value: /run/secrets/unifi/db_password
     volumeMounts:
-    - name: data
+    - name: unifi-data
       mountPath: /var/lib/unifi/
-    - name: logs
+    - name: unifi-logs
       mountPath: /var/log/unifi/
     - name: configs
       mountPath: /run/configs/unifi
@@ -55,26 +55,30 @@ spec:
     - name: MONGO_UNIFI_PASSWORD_FILE
       value: /run/secrets/unifi/db_password
     volumeMounts:
+    - name: unifi-configdb
+      mountPath: /data/configdb
+    - name: unifi-db
+      mountPath: /data/db
     - name: configs
       mountPath: /docker-entrypoint-initdb.d
     - name: secrets
       mountPath: /run/secrets/unifi
-    - name: db
-      mountPath: /data
   volumes:
+  - name: unifi-data
+    persistentVolumeClaim:
+      claimName: unifi-data
+  - name: unifi-configdb
+    persistentVolumeClaim:
+      claimName: unifi-configdb
+  - name: unifi-db
+    persistentVolumeClaim:
+      claimName: unifi-db
+  - name: unifi-logs
+    persistentVolumeClaim:
+      claimName: unifi-logs
   - name: secrets
     secret:
       secretName: unifi-secret
   - name: configs
     configMap:
       name: unifi-config
-  - name: data
-    persistentVolumeClaim:
-      claimName: unifi-data
-  - name: db
-    persistentVolumeClaim:
-      claimName: unifi-db
-  - name: logs
-    persistentVolumeClaim:
-      claimName: unifi-logs
-
