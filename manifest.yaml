@@ -38,6 +38,8 @@ spec:
       value: /run/configs/unifi/system-properties.template
     - name: MONGO_UNIFI_PASSWORD_FILE
       value: /run/secrets/unifi/db_password
+    - name: MEMORY_LIMIT
+      value: 256M
     volumeMounts:
     - name: unifi-data
       mountPath: /var/lib/unifi/
